@@ -13,14 +13,15 @@ const minQueueLen = 16
 
 // Queue represents a single instance of the queue data structure.
 type DefaultQueue[T any] struct {
-	buf               []*T
+	buf               []T
 	head, tail, count int
+	def               T
 }
 
 // New constructs and returns a new Queue.
 func NewDefaultQueue[T any]() *DefaultQueue[T] {
 	return &DefaultQueue[T]{
-		buf: make([]*T, minQueueLen),
+		buf: make([]T, minQueueLen),
 	}
 }
 
@@ -32,7 +33,7 @@ func (q *DefaultQueue[T]) Length() int {
 // resizes the queue to fit exactly twice its current contents
 // this can result in shrinking if the queue is less than half-full
 func (q *DefaultQueue[T]) resize() {
-	newBuf := make([]*T, q.count<<1)
+	newBuf := make([]T, q.count<<1)
 
 	if q.tail > q.head {
 		copy(newBuf, q.buf[q.head:q.tail])
@@ -47,7 +48,7 @@ func (q *DefaultQueue[T]) resize() {
 }
 
 // Add puts an element on the end of the queue.
-func (q *DefaultQueue[T]) Add(elem *T) {
+func (q *DefaultQueue[T]) Add(elem T) {
 	if q.count == len(q.buf) {
 		q.resize()
 	}
@@ -60,9 +61,9 @@ func (q *DefaultQueue[T]) Add(elem *T) {
 
 // Peek returns the element at the head of the queue. This call panics
 // if the queue is empty.
-func (q *DefaultQueue[T]) Peek() *T {
+func (q *DefaultQueue[T]) Peek() T {
 	if q.count <= 0 {
-		return nil
+		return q.def
 	}
 	return q.buf[q.head]
 }
@@ -71,13 +72,13 @@ func (q *DefaultQueue[T]) Peek() *T {
 // invalid, the call will panic. This method accepts both positive and
 // negative index values. Index 0 refers to the first element, and
 // index -1 refers to the last.
-func (q *DefaultQueue[T]) Get(i int) *T {
+func (q *DefaultQueue[T]) Get(i int) T {
 	// If indexing backwards, convert to positive index.
 	if i < 0 {
 		i += q.count
 	}
 	if i < 0 || i >= q.count {
-		return nil
+		return q.def
 	}
 	// bitwise modulus
 	return q.buf[(q.head+i)&(len(q.buf)-1)]
@@ -85,12 +86,12 @@ func (q *DefaultQueue[T]) Get(i int) *T {
 
 // Remove removes and returns the element from the front of the queue. If the
 // queue is empty, the call will panic.
-func (q *DefaultQueue[T]) Poll() *T {
+func (q *DefaultQueue[T]) Poll() T {
 	if q.count <= 0 {
-		return nil
+		return q.def
 	}
 	ret := q.buf[q.head]
-	q.buf[q.head] = nil
+	q.buf[q.head] = q.def
 	// bitwise modulus
 	q.head = (q.head + 1) & (len(q.buf) - 1)
 	q.count--

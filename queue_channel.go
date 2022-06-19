@@ -4,15 +4,15 @@ package channels
 
 // QueueChannel implements the Channel interface with an infinite buffer between the input and the output.
 type QueueChannel[T any] struct {
-	input, output chan *T
+	input, output chan T
 	length        chan int
-	buffer        Queue[*T]
+	buffer        Queue[T]
 }
 
-func NewQueueChannel[T any](buffer Queue[*T]) *QueueChannel[T] {
+func NewQueueChannel[T any](buffer Queue[T]) *QueueChannel[T] {
 	ch := &QueueChannel[T]{
-		input:  make(chan *T),
-		output: make(chan *T),
+		input:  make(chan T),
+		output: make(chan T),
 		length: make(chan int),
 		buffer: buffer,
 	}
@@ -20,11 +20,11 @@ func NewQueueChannel[T any](buffer Queue[*T]) *QueueChannel[T] {
 	return ch
 }
 
-func (ch *QueueChannel[T]) In() chan<- *T {
+func (ch *QueueChannel[T]) In() chan<- T {
 	return ch.input
 }
 
-func (ch *QueueChannel[T]) Out() <-chan *T {
+func (ch *QueueChannel[T]) Out() <-chan T {
 	return ch.output
 }
 
@@ -75,8 +75,8 @@ func (ch *QueueChannel[T]) startBufferChannel() {
 }
 */
 func (ch *QueueChannel[T]) startBufferChannel() {
-	var input, output chan *T = ch.input, ch.output
-	var inIten *T
+	var input, output chan T = ch.input, ch.output
+	var inIten T
 	var IsInputClosed bool
 
 	// Not sure how this is working
