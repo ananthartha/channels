@@ -12,6 +12,7 @@ var (
 )
 
 type Operation[I, O any] func(context.Context, I, chan<- O) error
+type PlugOperation[I, O any] func(context.Context, I) error
 
 type Pipe[I, O any] struct {
 	ctx   TaskManagerContext[I, O]
@@ -24,7 +25,7 @@ func (p *Pipe[I, O]) Push(task I) {
 	p.In() <- task
 }
 
-func (p *Pipe[I, O]) InTo(other *Pipe[O, any]) *Pipe[O, any] {
+func (p *Pipe[I, O]) InTo(other InChannel[O]) InChannel[O] {
 	p.ctx.Returns = other.In()
 	return other
 }
