@@ -1,6 +1,8 @@
 package channels
 
-import "context"
+import (
+	"context"
+)
 
 type ConfigFn[I, O any] func(*Config[I, O]) error
 
@@ -11,14 +13,14 @@ type Config[I, O any] struct {
 }
 
 func defaultConfig[I, O any]() *Config[I, O] {
-	return &Config[I, O]{
+	instance := &Config[I, O]{
 		Context: context.Background(),
-		//TODO: Laater Changes this to blocking Queue
+		//TODO: Later Changes this to blocking Queue
 		Channel: NewQueueChannel[I](NewDefaultQueue[I]()),
-		InitTaskManager: func(tmc *TaskManagerContext[I, O]) TaskManager[I] {
-			return NewRestrictedTaskManager[I, O](tmc, 10)
-		},
 	}
+
+	WithRestrictedTaskManager[I, O](10)(instance)
+	return instance
 }
 
 func buildConfig[I, O any](configs ...ConfigFn[I, O]) *Config[I, O] {
