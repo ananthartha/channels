@@ -7,6 +7,7 @@ type QueueChannel[T any] struct {
 	input, output chan T
 	length        chan int
 	buffer        Queue[T]
+	def           T
 }
 
 func NewQueueChannel[T any](buffer Queue[T]) *QueueChannel[T] {
@@ -76,25 +77,29 @@ func (ch *QueueChannel[T]) startBufferChannel() {
 */
 func (ch *QueueChannel[T]) startBufferChannel() {
 	var input, output chan T = ch.input, ch.output
-	var inIten T
-	var IsInputClosed bool
+	var inIten, nextItem T
+	var IsInputOpen bool = true
 
 	// Not sure how this is working
 	// Should i check if inout is closed and buffer is nul then close the out channel
-	for IsInputClosed && output != nil {
-		select {
-		case inIten, IsInputClosed = <-input:
-			if IsInputClosed {
-				ch.buffer.Add(inIten)
-			}
-		case output <- ch.buffer.Poll():
-		case ch.length <- ch.buffer.Length():
-		}
-
+	for IsInputOpen || output != nil {
 		if ch.buffer.Length() > 0 {
 			output = ch.output
+			nextItem = ch.buffer.Peek()
 		} else {
 			output = nil
+			nextItem = ch.def
+		}
+
+		select {
+		case inIten, IsInputOpen = <-input:
+			if IsInputOpen {
+				ch.buffer.Add(inIten)
+			}
+		// We have to do it like this, insted of ch.buffer.Poll() as it gets executed always and skips the message
+		case output <- nextItem:
+			ch.buffer.Poll()
+		case ch.length <- ch.buffer.Length():
 		}
 	}
 
