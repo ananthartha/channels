@@ -5,18 +5,18 @@ import "context"
 type ConsumerOperation[I any] func(context.Context, I) error
 
 type Plug[I any] struct {
-	ctx   TaskManagerContext[I, any]
-	Close context.CancelFunc
+	ctx  TaskManagerContext[I, any]
+	Stop context.CancelFunc
 	UnbufferedInChannel[I]
 	TaskManager[I]
 }
 
 func NewPlug[I any](operation ConsumerOperation[I], configs ...ConfigFn[I, any]) *Plug[I] {
 	config := buildConfig(configs...)
-	ctx, close := context.WithCancel(config.Context)
+	ctx, stop := context.WithCancel(config.Context)
 
 	instance := &Plug[I]{
-		Close:               close,
+		Stop:                stop,
 		UnbufferedInChannel: config.Channel,
 	}
 
