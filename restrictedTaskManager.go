@@ -34,7 +34,7 @@ func (p *restrictedProcess[I, O]) run() {
 		if !open {
 			return
 		}
-		operation(p.ctx.Context, task, nil)
+		operation(p.ctx.Context, task, p.ctx.Returns)
 	}
 }
 

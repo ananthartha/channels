@@ -13,5 +13,5 @@ type TaskManagerContext[I, O any] struct {
 	Returns   chan<- O
 	Operation Operation[I, O]
 	context.Context
-	Channel[I]
+	UnbufferedChannel[I]
 }

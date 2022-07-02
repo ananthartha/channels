@@ -12,12 +12,11 @@ var (
 )
 
 type Operation[I, O any] func(context.Context, I, chan<- O) error
-type PlugOperation[I, O any] func(context.Context, I) error
 
 type Pipe[I, O any] struct {
 	ctx   TaskManagerContext[I, O]
 	Close context.CancelFunc
-	InChannel[I]
+	UnbufferedInChannel[I]
 	TaskManager[I]
 }
 
@@ -35,19 +34,15 @@ func NewPipe[I, O any](operation Operation[I, O], configs ...ConfigFn[I, O]) *Pi
 	ctx, close := context.WithCancel(config.Context)
 
 	instance := &Pipe[I, O]{
-		Close:     close,
-		InChannel: config.Channel,
+		Close:               close,
+		UnbufferedInChannel: config.Channel,
 	}
 
 	instance.TaskManager = config.InitTaskManager(&TaskManagerContext[I, O]{
-		Returns:   nil, // TODO: Do the black hole here
-		Context:   ctx,
-		Channel:   config.Channel,
-		Operation: operation,
+		Returns:           nil, // TODO: Do the black hole here
+		Context:           ctx,
+		UnbufferedChannel: config.Channel,
+		Operation:         operation,
 	})
 	return instance
-}
-
-func NewPlug[I any](operation Operation[I, interface{}], configs ...ConfigFn[I, interface{}]) *Pipe[I, interface{}] {
-	return NewPipe(operation, configs...)
 }
