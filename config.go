@@ -44,17 +44,12 @@ func WithContext[I, O any](ctx context.Context) ConfigFn[I, O] {
 	}
 }
 
-func WithChannel[I, O any](channel Channel[I]) ConfigFn[I, O] {
+func WithChannel[I, O any](channel Channel[I], prefix string, meter metric.Meter) ConfigFn[I, O] {
 	return func(c *Config[I, O]) error {
 		c.Channel = channel
-		return nil
-	}
-}
-
-func WithChannelAndMeterics[I, O any](channel Channel[I], prefix string, meter metric.Meter) ConfigFn[I, O] {
-	return func(c *Config[I, O]) error {
-		c.Channel = channel
-		RegisterBuffer(prefix, meter, channel)
+		if meter != nil {
+			RegisterBuffer(prefix, meter, channel)
+		}
 		return nil
 	}
 }
