@@ -93,8 +93,8 @@ func (tm *restrictedTaskManager[I, O]) init() {
 }
 
 func WithRestrictedTaskManager[I, O any](size int) ConfigFn[I, O] {
-	return func(c *Config[I, O]) error {
-		c.InitTaskManager = func(tmc *TaskManagerContext[I, O]) TaskManager[I] {
+	return func(c *config[I, O]) error {
+		c.initTaskManager = func(tmc *TaskManagerContext[I, O]) TaskManager[I] {
 			return NewRestrictedTaskManager(tmc, size)
 		}
 		return nil

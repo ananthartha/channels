@@ -31,19 +31,19 @@ func (p *Pipe[I, O]) InTo(other UnbufferedInChannel[O]) UnbufferedInChannel[O] {
 
 func NewPipe[I, O any](operation Operation[I, O], configs ...ConfigFn[I, O]) *Pipe[I, O] {
 	config := buildConfig(configs...)
-	ctx, stop := context.WithCancel(config.Context)
+	ctx, stop := context.WithCancel(config.context)
 
 	instance := &Pipe[I, O]{
 		Stop:                stop,
-		UnbufferedInChannel: config.Channel,
+		UnbufferedInChannel: config.channel,
 		ctx: &TaskManagerContext[I, O]{
 			Returns:           nil, // TODO: Do the black hole here
 			Context:           ctx,
-			UnbufferedChannel: config.Channel,
+			UnbufferedChannel: config.channel,
 			Operation:         operation,
 		},
 	}
 
-	instance.TaskManager = config.InitTaskManager(instance.ctx)
+	instance.TaskManager = config.initTaskManager(instance.ctx)
 	return instance
 }
