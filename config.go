@@ -18,7 +18,6 @@ func defaultConfig[I, O any]() *config[I, O] {
 	instance := &config[I, O]{
 		context: context.Background(),
 		//TODO: Later Changes this to blocking Queue
-		channel: NewQueueChannel[I](NewDefaultQueue[I]()),
 	}
 
 	WithRestrictedTaskManager[I, O](10)(instance)
@@ -32,6 +31,10 @@ func buildConfig[I, O any](configs ...ConfigFn[I, O]) *config[I, O] {
 		if configFn != nil {
 			configFn(config)
 		}
+	}
+
+	if config.channel == nil {
+		config.channel = NewQueueChannel[I](NewDefaultQueue[I]())
 	}
 
 	return config
