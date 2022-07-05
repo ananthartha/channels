@@ -2,6 +2,7 @@ package channels
 
 import (
 	"fmt"
+	"sync/atomic"
 )
 
 /*
@@ -35,19 +36,20 @@ func (p *restrictedProcess[I, O]) run() {
 			return
 		}
 		operation(p.ctx.Context, task, p.ctx.Returns)
+		atomic.AddInt32(&p.active, ^int32(0))
 	}
 }
 
 type restrictedTaskManager[I, O any] struct {
 	ctx       *TaskManagerContext[I, O]
 	size      int
+	active    int32
 	processes chan *restrictedProcess[I, O]
 	operation Operation[I, O]
 }
 
-func (tm *restrictedTaskManager[I, O]) Size() int      { return tm.size }
 func (tm *restrictedTaskManager[I, O]) Threshold() int { return tm.size }
-func (tm *restrictedTaskManager[I, O]) Active() int    { return -1 }
+func (tm *restrictedTaskManager[I, O]) Active() int    { return int(atomic.LoadInt32(&tm.active)) }
 func (tm *restrictedTaskManager[I, O]) Skipped() int   { return -1 }
 
 func NewRestrictedTaskManager[I, O any](ctx *TaskManagerContext[I, O], size int) *restrictedTaskManager[I, O] {
@@ -87,6 +89,7 @@ func (tm *restrictedTaskManager[I, O]) init() {
 			// The the avilable process from Chanel
 			process := <-tm.processes
 			// Send the request to the process
+			atomic.AddInt32(&tm.active, 1)
 			process.task <- request
 		}
 	}

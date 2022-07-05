@@ -32,12 +32,6 @@ func RegisterBuffer(prefix string, meter metric.Meter, buffer Buffer) {
 func RegisterTaskManager[I any](prefix string, meter metric.Meter, taskManager TaskManager[I]) {
 	var instrumentProvider = meter.AsyncInt64()
 
-	taskManagerSize, err := instrumentProvider.Gauge(fmt.Sprintf("%s_size", prefix))
-	if err != nil {
-		// logger.Panicf("failed to initialize tickEnqueued: %v", err)
-		return
-	}
-
 	taskManagerActive, err := instrumentProvider.Gauge(fmt.Sprintf("%s_active", prefix))
 	if err != nil {
 		// logger.Panicf("failed to initialize tickEnqueued: %v", err)
@@ -56,8 +50,7 @@ func RegisterTaskManager[I any](prefix string, meter metric.Meter, taskManager T
 		return
 	}
 
-	_ = meter.RegisterCallback([]instrument.Asynchronous{taskManagerSize, taskManagerActive, taskManagerThreshold, taskManagerSkipped}, func(ctx context.Context) {
-		taskManagerSize.Observe(ctx, int64(taskManager.Size()))
+	_ = meter.RegisterCallback([]instrument.Asynchronous{taskManagerActive, taskManagerThreshold, taskManagerSkipped}, func(ctx context.Context) {
 		taskManagerActive.Observe(ctx, int64(taskManager.Active()))
 		taskManagerThreshold.Observe(ctx, int64(taskManager.Threshold()))
 		taskManagerSkipped.Observe(ctx, int64(taskManager.Skipped()))
