@@ -56,7 +56,7 @@ func NewRestrictedTaskManager[I, O any](ctx *TaskManagerContext[I, O], size int)
 	instance := &restrictedTaskManager[I, O]{
 		ctx:       ctx,
 		size:      size,
-		processes: make(chan *restrictedProcess[I, O]),
+		processes: make(chan *restrictedProcess[I, O], size),
 		operation: ctx.Operation,
 	}
 
