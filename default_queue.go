@@ -63,7 +63,7 @@ func (q *DefaultQueue[T]) Add(elem T) {
 // if the queue is empty.
 func (q *DefaultQueue[T]) Peek() T {
 	if q.count <= 0 {
-		return q.def
+		panic("queue: Peek() called on empty queue")
 	}
 	return q.buf[q.head]
 }
@@ -78,7 +78,7 @@ func (q *DefaultQueue[T]) Get(i int) T {
 		i += q.count
 	}
 	if i < 0 || i >= q.count {
-		return q.def
+		panic("queue: Get() called with index out of range")
 	}
 	// bitwise modulus
 	return q.buf[(q.head+i)&(len(q.buf)-1)]
@@ -88,7 +88,7 @@ func (q *DefaultQueue[T]) Get(i int) T {
 // queue is empty, the call will panic.
 func (q *DefaultQueue[T]) Poll() T {
 	if q.count <= 0 {
-		return q.def
+		panic("queue: Remove() called on empty queue")
 	}
 	ret := q.buf[q.head]
 	q.buf[q.head] = q.def
