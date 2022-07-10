@@ -41,40 +41,6 @@ func (ch *QueueChannel[T]) Close() {
 	close(ch.input)
 }
 
-/*
-func (ch *QueueChannel[T]) startBufferChannel() {
-	var input, output chan *T
-	var next *T
-	input = ch.input
-
-	// Not sure how this is working
-	// Should i check if inout is closed and buffer is nul then close the out channel
-	for input != nil || output != nil {
-		select {
-		case elem, open := <-input:
-			if open {
-				ch.buffer.Add(elem)
-			} else {
-				input = nil
-			}
-		case output <- next:
-			ch.buffer.Poll()
-		case ch.length <- ch.buffer.Length():
-		}
-
-		if ch.buffer.Length() > 0 {
-			output = ch.output
-			next = ch.buffer.Peek()
-		} else {
-			output = nil
-			next = nil
-		}
-	}
-
-	close(ch.output)
-	close(ch.length)
-}
-*/
 func (ch *QueueChannel[T]) startBufferChannel() {
 	var input, output chan T = ch.input, ch.output
 	var inIten, nextItem T
