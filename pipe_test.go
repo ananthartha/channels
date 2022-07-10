@@ -1,0 +1,67 @@
+package channels
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"testing"
+)
+
+func TestPipeWithRestrictedTaskManager(t *testing.T) {
+	var w sync.WaitGroup
+	maxInts := 1000000
+
+	q := NewQueueChannel[int](NewDefaultQueue[int]())
+
+	p := NewPipe(func(ctx context.Context, msg int, out chan<- int) error {
+		w.Done()
+		return nil
+	}, WithRestrictedTaskManager[int, int](50),
+		WithChannel[int, int](q, "binary_packet", nil))
+
+	if q.Len() != 0 {
+		t.Error("empty queue length not 0")
+	}
+
+	w.Add(maxInts)
+
+	for i := 0; i < maxInts; i++ {
+		p.In() <- i
+	}
+
+	w.Wait()
+
+	if q.Len() > 0 {
+		t.Error("queue is not flushed out", q.Len())
+	}
+}
+
+func BenchmarkPipeThoughPutTest(b *testing.B) {
+	var w sync.WaitGroup
+	fmt.Println(b.N)
+	maxInts := b.N
+
+	q := NewQueueChannel[int](NewDefaultQueue[int]())
+
+	p := NewPipe(func(ctx context.Context, msg int, out chan<- int) error {
+		w.Done()
+		return nil
+	}, WithRestrictedTaskManager[int, int](50),
+		WithChannel[int, int](q, "binary_packet", nil))
+
+	if q.Len() != 0 {
+		b.Error("empty queue length not 0")
+	}
+
+	w.Add(maxInts)
+
+	for i := 0; i < maxInts; i++ {
+		p.In() <- i
+	}
+
+	w.Wait()
+
+	if q.Len() > 0 {
+		b.Error("queue is not flushed out", q.Len())
+	}
+}
