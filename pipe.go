@@ -13,7 +13,7 @@ var (
 
 type Pipe[I, O any] struct {
 	ctx     *TaskManagerContext[I]
-	Stop    context.CancelFunc
+	Close   context.CancelFunc
 	Returns chan<- O
 	UnbufferedInChannel[I]
 	TaskManager[I]
@@ -33,7 +33,7 @@ func NewPipe[I, O any](operation OperationWithResutl[I, O], configs ...ConfigFn[
 	ctx, stop := context.WithCancel(config.context)
 
 	instance := &Pipe[I, O]{
-		Stop:                stop,
+		Close:               stop,
 		UnbufferedInChannel: config.channel,
 		// func(ctx, I) { operation(ctx, I, instance.Returns) }
 	}

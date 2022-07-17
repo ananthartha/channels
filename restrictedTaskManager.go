@@ -81,7 +81,15 @@ func (tm *restrictedTaskManager[I]) init() {
 		select {
 		case <-tm.ctx.Done():
 			// TODO: Log error if any from context
-			return
+			for {
+				select {
+				// NOTE: Clean Up the active processes and exit
+				case process := <-tm.processes:
+					close(process.task)
+				default:
+					return
+				}
+			}
 		case request, open := <-tm.ctx.Out():
 			if !open {
 				return
