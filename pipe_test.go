@@ -41,7 +41,7 @@ func TestPipeWithRestrictedTaskManager(t *testing.T) {
 	p.Close()
 }
 
-func TestPipeWithRestrictedTaskManager2(t *testing.T) {
+func TestPipeWithAutoScaleTaskManager(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	var w sync.WaitGroup
 	maxInts := 1000000
