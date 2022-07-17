@@ -3,8 +3,8 @@ package channels
 import "context"
 
 type Plug[I any] struct {
-	ctx  *TaskManagerContext[I]
-	Stop context.CancelFunc
+	ctx   *TaskManagerContext[I]
+	Close context.CancelFunc
 	UnbufferedInChannel[I]
 	TaskManager[I]
 }
@@ -14,7 +14,7 @@ func NewPlug[I any](operation Operation[I], configs ...ConfigFn[I]) *Plug[I] {
 	ctx, stop := context.WithCancel(config.context)
 
 	instance := &Plug[I]{
-		Stop:                stop,
+		Close:               stop,
 		UnbufferedInChannel: config.channel,
 		ctx: &TaskManagerContext[I]{
 			Context:           ctx,
