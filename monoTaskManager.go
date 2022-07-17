@@ -1,17 +1,17 @@
 package channels
 
-type monoTaskManager[I, O any] struct {
-	operation Operation[I, O]
-	*TaskManagerContext[I, O]
+type monoTaskManager[I any] struct {
+	operation Operation[I]
+	*TaskManagerContext[I]
 }
 
-func (tm *monoTaskManager[I, O]) Size() int      { return 1 }
-func (tm *monoTaskManager[I, O]) Threshold() int { return 1 }
-func (tm *monoTaskManager[I, O]) Active() int    { return 1 }
-func (tm *monoTaskManager[I, O]) Skipped() int   { return -1 }
+func (tm *monoTaskManager[I]) Size() int      { return 1 }
+func (tm *monoTaskManager[I]) Threshold() int { return 1 }
+func (tm *monoTaskManager[I]) Active() int    { return 1 }
+func (tm *monoTaskManager[I]) Skipped() int   { return -1 }
 
-func NewmonoTaskManager[I, O any](ctx *TaskManagerContext[I, O]) *monoTaskManager[I, O] {
-	instance := &monoTaskManager[I, O]{
+func NewmonoTaskManager[I any](ctx *TaskManagerContext[I]) *monoTaskManager[I] {
+	instance := &monoTaskManager[I]{
 		operation:          ctx.Operation,
 		TaskManagerContext: ctx,
 	}
@@ -20,7 +20,7 @@ func NewmonoTaskManager[I, O any](ctx *TaskManagerContext[I, O]) *monoTaskManage
 	return instance
 }
 
-func (tm *monoTaskManager[I, O]) init() {
+func (tm *monoTaskManager[I]) init() {
 	// When the for loop ends close the channel to clean thing up
 	defer tm.Close()
 	for {
@@ -33,14 +33,14 @@ func (tm *monoTaskManager[I, O]) init() {
 				return
 			}
 			// The the avilable process from Chanel
-			tm.operation(tm.Context, request, tm.Returns)
+			tm.operation(tm.Context, request)
 		}
 	}
 }
 
-func WithMonoTaskManager[I, O any]() ConfigFn[I, O] {
-	return func(c *config[I, O]) error {
-		c.initTaskManager = func(tmc *TaskManagerContext[I, O]) TaskManager[I] {
+func WithMonoTaskManager[I any]() ConfigFn[I] {
+	return func(c *config[I]) error {
+		c.initTaskManager = func(tmc *TaskManagerContext[I]) TaskManager[I] {
 			return NewmonoTaskManager(tmc)
 		}
 		return nil
