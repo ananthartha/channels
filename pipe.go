@@ -11,11 +11,10 @@ var (
 	ErrPipeHasBeanClosed = errors.New("the pipe has already benn closed")
 )
 
-type Operation[I, O any] func(context.Context, I, chan<- O) error
-
 type Pipe[I, O any] struct {
-	ctx  *TaskManagerContext[I, O]
-	Stop context.CancelFunc
+	ctx     *TaskManagerContext[I]
+	Close   context.CancelFunc
+	Returns chan<- O
 	UnbufferedInChannel[I]
 	TaskManager[I]
 }
@@ -25,23 +24,24 @@ func (p *Pipe[I, O]) Push(task I) {
 }
 
 func (p *Pipe[I, O]) InTo(other UnbufferedInChannel[O]) UnbufferedInChannel[O] {
-	p.ctx.Returns = other.In()
+	p.Returns = other.In()
 	return other
 }
 
-func NewPipe[I, O any](operation Operation[I, O], configs ...ConfigFn[I, O]) *Pipe[I, O] {
+func NewPipe[I, O any](operation OperationWithResutl[I, O], configs ...ConfigFn[I]) *Pipe[I, O] {
 	config := buildConfig(configs...)
 	ctx, stop := context.WithCancel(config.context)
 
 	instance := &Pipe[I, O]{
-		Stop:                stop,
+		Close:               stop,
 		UnbufferedInChannel: config.channel,
-		ctx: &TaskManagerContext[I, O]{
-			Returns:           nil, // TODO: Do the black hole here
-			Context:           ctx,
-			UnbufferedChannel: config.channel,
-			Operation:         operation,
-		},
+		// func(ctx, I) { operation(ctx, I, instance.Returns) }
+	}
+
+	instance.ctx = &TaskManagerContext[I]{
+		Context:           ctx,
+		UnbufferedChannel: config.channel,
+		Operation:         func(ctx context.Context, i I) error { return operation(ctx, i, instance.Returns) },
 	}
 
 	instance.TaskManager = config.initTaskManager(instance.ctx)

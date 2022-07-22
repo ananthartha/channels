@@ -6,26 +6,26 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-type ConfigFn[I, O any] func(*config[I, O]) error
+type ConfigFn[I any] func(*config[I]) error
 
-type config[I, O any] struct {
+type config[I any] struct {
 	context         context.Context
 	channel         UnbufferedChannel[I]
-	initTaskManager func(*TaskManagerContext[I, O]) TaskManager[I]
+	initTaskManager func(*TaskManagerContext[I]) TaskManager[I]
 }
 
-func defaultConfig[I, O any]() *config[I, O] {
-	instance := &config[I, O]{
+func defaultConfig[I any]() *config[I] {
+	instance := &config[I]{
 		context: context.Background(),
 		//TODO: Later Changes this to blocking Queue
 	}
 
-	WithRestrictedTaskManager[I, O](10)(instance)
+	WithRestrictedTaskManager[I](10)(instance)
 	return instance
 }
 
-func buildConfig[I, O any](configs ...ConfigFn[I, O]) *config[I, O] {
-	config := defaultConfig[I, O]()
+func buildConfig[I any](configs ...ConfigFn[I]) *config[I] {
+	config := defaultConfig[I]()
 
 	for _, configFn := range configs {
 		if configFn != nil {
@@ -40,15 +40,15 @@ func buildConfig[I, O any](configs ...ConfigFn[I, O]) *config[I, O] {
 	return config
 }
 
-func WithContext[I, O any](ctx context.Context) ConfigFn[I, O] {
-	return func(c *config[I, O]) error {
+func WithContext[I, O any](ctx context.Context) ConfigFn[I] {
+	return func(c *config[I]) error {
 		c.context = ctx
 		return nil
 	}
 }
 
-func WithChannel[I, O any](channel Channel[I], prefix string, meter metric.Meter) ConfigFn[I, O] {
-	return func(c *config[I, O]) error {
+func WithChannel[I, O any](channel Channel[I], prefix string, meter metric.Meter) ConfigFn[I] {
+	return func(c *config[I]) error {
 		c.channel = channel
 		if meter != nil {
 			RegisterBuffer(prefix, meter, channel)
@@ -58,8 +58,8 @@ func WithChannel[I, O any](channel Channel[I], prefix string, meter metric.Meter
 }
 
 // Will be blocking channels
-func WithUnbufferedChannel[I, O any](channel UnbufferedChannel[I]) ConfigFn[I, O] {
-	return func(c *config[I, O]) error {
+func WithUnbufferedChannel[I, O any](channel UnbufferedChannel[I]) ConfigFn[I] {
+	return func(c *config[I]) error {
 		c.channel = channel
 		return nil
 	}

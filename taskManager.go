@@ -8,10 +8,11 @@ type TaskManager[I any] interface {
 	Skipped() int
 }
 
-type TaskManagerContext[I, O any] struct {
-	Returns   chan<- O
-	Operation Operation[I, O]
+type OperationWithResutl[I, O any] func(context.Context, I, chan<- O) error
+
+type Operation[I any] func(context.Context, I) error
+type TaskManagerContext[I any] struct {
+	Operation Operation[I]
 	context.Context
 	UnbufferedChannel[I]
-	// Replace Close with Release to close the input channel and end the context and release the resources
 }
