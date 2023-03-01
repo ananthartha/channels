@@ -21,6 +21,17 @@ func NewQueueChannel[T any](buffer Queue[T]) *QueueChannel[T] {
 	return ch
 }
 
+func NewQueueChannelWithInputSize[T any](buffer Queue[T], size int) *QueueChannel[T] {
+	ch := &QueueChannel[T]{
+		input:  make(chan T, size),
+		output: make(chan T),
+		length: make(chan int),
+		buffer: buffer,
+	}
+	go ch.startBufferChannel()
+	return ch
+}
+
 func (ch *QueueChannel[T]) In() chan T {
 	return ch.input
 }
