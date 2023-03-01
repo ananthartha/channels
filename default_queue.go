@@ -25,6 +25,12 @@ func NewDefaultQueue[T any]() *DefaultQueue[T] {
 	}
 }
 
+func NewDefaultQueueWithSize[T any](size int) *DefaultQueue[T] {
+	return &DefaultQueue[T]{
+		buf: make([]T, size),
+	}
+}
+
 // Length returns the number of elements currently stored in the queue.
 func (q *DefaultQueue[T]) Length() int {
 	return q.count
