@@ -21,7 +21,7 @@ func NewQueueChannel[T any](buffer Queue[T]) *QueueChannel[T] {
 	return ch
 }
 
-func (ch *QueueChannel[T]) In() chan<- T {
+func (ch *QueueChannel[T]) In() chan T {
 	return ch.input
 }
 

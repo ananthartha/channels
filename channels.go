@@ -6,8 +6,8 @@ type Buffer interface {
 }
 
 type UnbufferedInChannel[T any] interface {
-	In() chan<- T // The writeable end of the channel.
-	Close()       // Closes the channel. It is an error to write to In() after calling Close().
+	In() chan T // The writeable end of the channel.
+	Close()     // Closes the channel. It is an error to write to In() after calling Close().
 }
 
 type InChannel[T any] interface {

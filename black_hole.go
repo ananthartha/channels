@@ -18,7 +18,7 @@ func NewBlackHole[I any]() *BlackHole[I] {
 	return ch
 }
 
-func (ch *BlackHole[I]) In() chan<- I {
+func (ch *BlackHole[I]) In() chan I {
 	return ch.input
 }
 

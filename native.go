@@ -9,7 +9,7 @@ func NewNative[T any](size int) Native[T] {
 	return make(chan T, size)
 }
 
-func (ch Native[T]) In() chan<- T {
+func (ch Native[T]) In() chan T {
 	return ch
 }
 

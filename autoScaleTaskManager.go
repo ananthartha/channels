@@ -9,7 +9,7 @@ import (
 /*
 type Process[I any] interface {
 	Id() string
-	In() chan<- I
+	In() chan I
 	Terminate() // To Clean it self up after the current operation =
 }
 */
